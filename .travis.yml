@@ -11,6 +11,8 @@ script:
   - npm test
   - npm run build
 after_success:
+  - cd build
+  - git init
   - git add .
   - git commit -m "Travis Deploy"
-  - git subtree push -P build -q $GITHUB_URI gh-pages
+  - git push -f -q $GITHUB_URI master:gh-pages
