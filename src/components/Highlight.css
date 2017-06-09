@@ -1,0 +1,24 @@
+.keyword {
+    color: #651FFF;
+}
+
+.identifier {
+    color: #00796B;
+}
+
+.literal-numeric {
+    color: #EF6C00;
+}
+
+.delimiter {
+    color: #616161;
+}
+
+.operator {
+    color: #C2185B;
+}
+
+.error {
+    color: #D50000;
+    text-decoration: underline wavy;
+}
