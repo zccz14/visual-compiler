@@ -1,5 +1,8 @@
 import React from "react";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
+import inject from "react-tap-event-plugin";
+inject();
+
 export default class MuiRoot extends React.Component {
     render() {
         return (

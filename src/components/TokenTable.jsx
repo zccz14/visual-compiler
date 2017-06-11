@@ -1,5 +1,6 @@
 import React from "react";
 import {Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn} from "material-ui/Table";
+import "./Highlight.css";
 export default class TokenTable extends React.Component {
     render() {
         return (

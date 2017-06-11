@@ -1,55 +1,54 @@
 import React, {Component} from "react";
-import MuiRoot from "./components/MuiRoot";
 import AppBar from "material-ui/AppBar";
-import RaisedButton from "material-ui/RaisedButton";
-import TextField from "material-ui/TextField";
-import Result from "./components/Result";
-import inject from "react-tap-event-plugin";
-inject();
-const DefaultText =
-    `int a, b;
-while a<20∧b>8 do {
-    if a>10∨b<16 then {
-        if a<15 then {
-            a:=19; 
-            b:=15
-        } else {
-            a:=11;
-            b:=9
-        };
-    }
-    else {a:=1; b:=17};
-};
-`;
-
+import IconButton from "material-ui/IconButton";
+import Translate from "material-ui/svg-icons/action/translate";
+import {connect} from "react-redux";
+import Bottom from "./components/Bottom";
+import {Route, Switch} from "react-router-dom";
+import {push} from "react-router-redux";
+import Code from "./containers/Code";
+import Lex from "./containers/Lex";
+const NotFound = () => (
+    <div>TBD, TODO</div>
+);
 class App extends Component {
-    state = {
-        text: DefaultText
-    };
     render() {
+        const {dispatch, pathLabel} = this.props;
+        const handleChangeNav = (label) => dispatch(push(`/${label}`));
         return (
-            <MuiRoot>
-                <div>
-                    <AppBar title="Visual Compiler"/>
-                    <TextField
-                        ref="input"
-                        floatingLabelText="input"
-                        fullWidth={true}
-                        multiLine={true}
-                        inputStyle={{fontFamily: 'Consolas'}}
-                        defaultValue={DefaultText}
-                    />
-                    <RaisedButton
-                        onTouchTap={() => {
-                            this.setState({text: this.refs.input.getValue()});
-                        }}
-                    >
-                        COMPILE
-                    </RaisedButton>
-                    <Result text={this.state.text}/>
+            <div>
+                <AppBar
+                    title="Visual Compiler"
+                    iconElementLeft={<IconButton><Translate/></IconButton>}
+                    style={{
+                        position: 'fixed',
+                        top: 0
+                    }}
+                />
+                <div
+                    style={{
+                        position: 'relative',
+                        top: 64
+                    }}
+                >
+
+                    <Switch>
+                        <Route path="/code" component={Code}/>
+                        <Route path="/lex" component={Lex}/>
+                        <Route component={NotFound}/>
+                    </Switch>
                 </div>
-            </MuiRoot>
+                <Bottom
+                    label={pathLabel}
+                    onChange={handleChangeNav}
+                />
+            </div>
         );
     }
 }
-export default App;
+function select(state) {
+    return {
+        pathLabel: state.router.location.pathname.split('/')[1]
+    }
+}
+export default connect(select)(App);
