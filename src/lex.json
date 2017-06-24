@@ -1,0 +1,25 @@
+{
+  "keywords": [
+    "int",
+    "float",
+    "char",
+    "bool",
+    "if",
+    "then",
+    "else",
+    "case",
+    "of",
+    "otherwise",
+    "end",
+    "while",
+    "do",
+    "call",
+    "return"
+  ],
+  "space": [
+    " ",
+    "\n",
+    "\t",
+    "\r"
+  ]
+}
