@@ -224,5 +224,137 @@ export class Expression4 implements ISyntaxTree {
     operand1: ISyntaxTree;
     operand2: ISyntaxTree;
 }
+/**
+ * Left-to-Right Association, Relation Operator
+ * <Expression5> ::= <Expression5> <Operator LessThan> <Expression4> |
+ *                   <Expression5> <Operator LessThanOrEqualTo> <Expression4> |
+ *                   <Expression5> <Operator GreaterThan> <Expression4> |
+ *                   <Expression5> <Operator GreaterThanOrEqualTo> <Expression4> |
+ *                   <Expression4>
+ */
+@SyntaxTreeType
+export class Expression5 implements ISyntaxTree {
+    static parse(ts: ITokenIterator): Expression5 {
+        let res = new Expression5();
+        res.operand1 = Expression4.parse(ts);
+        while (ts.cur()) {
+            let t = new Expression5();
+            t.operand1 = res;
+            if (ts.cur().text === '<') {
+                ts.accept();
+                res.operator = 'less-than';
+                res.operand2 = Expression4.parse(ts);
+            } else if (ts.cur().text === '>') {
+                ts.accept();
+                res.operator = 'greater-than';
+                res.operand2 = Expression4.parse(ts);
+            } else if (ts.cur().text === '≤') {
+                ts.accept();
+                res.operator = 'less-than-or-equal-to';
+                res.operand2 = Expression4.parse(ts);
+            } else if (ts.cur().text === '≥') {
+                ts.accept();
+                res.operator = 'greater-than-or-equal-to';
+                res.operand2 = Expression4.parse(ts);                
+            } else {
+                break;
+            }
+            res = t;
+        }        
+        return res;
+    }
+    operator: string;
+    operand1: ISyntaxTree;
+    operand2: ISyntaxTree;
+}
+/**
+ * Left-to-Right Association, Relation Operator
+ * <Expression6> ::= <Expression6> <Operator Equal> <Expression5> |
+ *                   <Expression6> <Operator NotEqual> <Expression5> |
+ *                   <Expression5>
+ */
+@SyntaxTreeType
+export class Expression6 implements ISyntaxTree {
+    static parse(ts: ITokenIterator): Expression6 {
+        let res = new Expression6();
+        res.operand1 = Expression5.parse(ts);
+        while (ts.cur()) {
+            let t = new Expression6();
+            t.operand1 = res;
+            if (ts.cur().text === '=') {
+                ts.accept();
+                res.operator = 'equal';
+                res.operand2 = Expression5.parse(ts);
+            } else if (ts.cur().text === '≠') {
+                ts.accept();
+                res.operator = 'not-equal';
+                res.operand2 = Expression5.parse(ts);
+            } else {
+                break;
+            }
+            res = t;
+        }        
+        return res;
+    }
+    operator: string;
+    operand1: ISyntaxTree;
+    operand2: ISyntaxTree;
+}
+/**
+ * Left-to-Right Association, Logical Or
+ * <Expression7> ::= <Expression7> <Operator Or> <Expression6> |
+ *                   <Expression6>
+ */
+@SyntaxTreeType
+export class Expression7 implements ISyntaxTree {
+    static parse(ts: ITokenIterator): Expression7 {
+        let res = new Expression7();
+        res.operand1 = Expression6.parse(ts);
+        while (ts.cur()) {
+            let t = new Expression7();
+            t.operand1 = res;
+            if (ts.cur().text === '∨') {
+                ts.accept();
+                res.operator = 'logical-or';
+                res.operand2 = Expression6.parse(ts);
+            } else {
+                break;
+            }
+            res = t;
+        }        
+        return res;
+    }
+    operator: string;
+    operand1: ISyntaxTree;
+    operand2: ISyntaxTree;
+}
+/**
+ * Left-to-Right Association, Logical And
+ * <Expression8> ::= <Expression8> <Operator And> <Expression7> |
+ *                   <Expression7>
+ */
+@SyntaxTreeType
+export class Expression8 implements ISyntaxTree {
+    static parse(ts: ITokenIterator): Expression8 {
+        let res = new Expression8();
+        res.operand1 = Expression7.parse(ts);
+        while (ts.cur()) {
+            let t = new Expression8();
+            t.operand1 = res;
+            if (ts.cur().text === '∧') {
+                ts.accept();
+                res.operator = 'logical-and';
+                res.operand2 = Expression7.parse(ts);
+            } else {
+                break;
+            }
+            res = t;
+        }        
+        return res;
+    }
+    operator: string;
+    operand1: ISyntaxTree;
+    operand2: ISyntaxTree;
+}
 
-Expression.Top = Expression4;
+Expression.Top = Expression8;

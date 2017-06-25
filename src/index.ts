@@ -20,7 +20,8 @@ console.log(STHub);
 // let tit = Lexer.lex('d()++[] 10[1] a(d[1 ][2], -a)');
 // let tit = Lexer.lex('d(1 × (2 + b) × a++)');
 // let tit = Lexer.lex('d((2))');
-let tit = Lexer.lex('d((2 + 1))');
+// let tit = Lexer.lex('d((2 + 1))');
+let tit = Lexer.lex('a > 1 ∧ a < 10');
 log(tit.cur);
 let i = 0;
 while (tit.isEnded() == false) {
