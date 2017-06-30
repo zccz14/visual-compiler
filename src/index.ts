@@ -12,6 +12,7 @@ import DefineArray from "./syntax/define-array";
 import DefineObjectList from "./syntax/define-object-list";
 import Definition from "./syntax/definition";
 import Expression from "./syntax/expression";
+import Statement, { StatementList } from "./syntax/statement";
 function log(v) {
     console.log(JSON.stringify(v, null, 2));
 }
@@ -21,10 +22,11 @@ console.log(STHub);
 // let tit = Lexer.lex('d(1 × (2 + b) × a++)');
 // let tit = Lexer.lex('d((2))');
 // let tit = Lexer.lex('d((2 + 1))');
-let tit = Lexer.lex('a > 1 ∧ a < 10');
+// let tit = Lexer.lex('int a; a > 1 ∧ a < 10');
+let tit = Lexer.lex('switch a of case 0: a++ case 1: a-- end');
 log(tit.cur);
 let i = 0;
 while (tit.isEnded() == false) {
     console.log('#' + i++);
-    log(Expression.parse(tit));
+    log(StatementList.parse(tit));
 }

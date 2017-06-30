@@ -13,9 +13,9 @@ export default class BaseType implements ISyntaxTree {
         let res = new BaseType();
         if (ts.cur().getType() === 'keyword') {
             let t = ts.cur().text;
-            if (t === 'int' || t === 'float' || t === 'char' || t === 'bool') {
-                res.type = ts.cur().text;
+            if (BaseTypeSet.has(t)) {
                 ts.accept();
+                res.type = t;
             } else {
                 throw new Error('SyntaxError: Expect basetype');
             }
@@ -26,3 +26,5 @@ export default class BaseType implements ISyntaxTree {
     }
     type: string;
 }
+
+export const BaseTypeSet: ReadonlySet<string> = new Set(['int', 'float', 'char', 'bool']);
