@@ -356,5 +356,30 @@ export class Expression8 implements ISyntaxTree {
     operand1: ISyntaxTree;
     operand2: ISyntaxTree;
 }
+/**
+ * Right-to-Left Association, Assignment Operator
+ * <Expression9> ::= <Expression8> <Operator Assignment> <Expression9> |
+ *                   <Expression8>
+ */
+@SyntaxTreeType
+export class Expression9 implements ISyntaxTree {
+    static parse(ts: ITokenIterator): Expression9 {
+	let res = new Expression9();
+	res.operand1 = Expression8.parse(ts);
+	while (ts.cur()) {
+	    if (ts.cur().text === ':=') {
+		ts.accept();
+		res.operator = ':=';
+		res.operand2 = Expression9.parse(ts);
+	    } else {
+		break;
+	    }
+	}
+	return res;  
+    }
+    operator: string;
+    operand1: ISyntaxTree;
+    operand2: ISyntaxTree;
+}
 
-Expression.Top = Expression8;
+Expression.Top = Expression9;
