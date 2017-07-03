@@ -1,5 +1,6 @@
 import { SyntaxTreeType, ISyntaxTree } from "../syntax-tree";
 import { ITokenIterator } from "../token-iterator";
+import { KEYWORD } from "../token";
 /**
  * BaseType ST
  * <BaseType> ::= <Keyword int> | 
@@ -11,7 +12,7 @@ import { ITokenIterator } from "../token-iterator";
 export default class BaseType implements ISyntaxTree {
     static parse(ts: ITokenIterator): BaseType {
         let res = new BaseType();
-        if (ts.cur().getType() === 'keyword') {
+        if (ts.cur().type === KEYWORD) {
             let t = ts.cur().text;
             if (BaseTypeSet.has(t)) {
                 ts.accept();

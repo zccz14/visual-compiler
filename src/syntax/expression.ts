@@ -1,5 +1,6 @@
-import {ISyntaxTree, ISyntaxTreeConstructor, SyntaxTreeType} from "../syntax-tree";
-import {ITokenIterator} from "../token-iterator";
+import { ISyntaxTree, ISyntaxTreeConstructor, SyntaxTreeType } from "../syntax-tree";
+import { ITokenIterator } from "../token-iterator";
+import { IDENTIFIER, LITERAL, DELIMITER } from "../token";
 /**
  * <Expression> ::= <ExpressionTop>
  */
@@ -13,6 +14,7 @@ export default class Expression implements ISyntaxTree {
 
     static Top: ISyntaxTreeConstructor;
     expr: ISyntaxTree;
+    type: string = 'Expression';
 }
 
 /**
@@ -23,17 +25,17 @@ export default class Expression implements ISyntaxTree {
 export class ExpressionBottom implements ISyntaxTree {
     static parse(ts: ITokenIterator): ExpressionBottom {
         let res = new ExpressionBottom();
-        if (ts.cur().getType() === 'identifier') {
+        if (ts.cur().type === IDENTIFIER) {
             // Identifier
             res.id = ts.cur().text;
             ts.accept();
-        } else if (ts.cur().getType() === 'literal') {
+        } else if (ts.cur().type === LITERAL) {
             res.value = parseInt(ts.cur().text, 10);
             ts.accept();
-        } else if (ts.cur().getType() === 'delimiter' && ts.cur().text === '(') {
+        } else if (ts.cur().type === DELIMITER && ts.cur().text === '(') {
             ts.accept();
             res.expr = Expression.parse(ts);
-            if (ts.cur().getType() === 'delimiter' && ts.cur().text === ')') {
+            if (ts.cur().type === DELIMITER && ts.cur().text === ')') {
                 ts.accept();
             } else {
                 throw new Error('SyntaxError: Expect )');
@@ -45,6 +47,7 @@ export class ExpressionBottom implements ISyntaxTree {
     id: string;
     expr: Expression;
     value: number;
+    type: string = 'ExpressionBottom';
 }
 
 /**
@@ -57,7 +60,7 @@ export class ExpressionBottom implements ISyntaxTree {
  */
 @SyntaxTreeType
 export class Expression1 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): Expression1 {
+    static parse(ts: ITokenIterator): ISyntaxTree {
         let res = new Expression1();
         res.operand = ExpressionBottom.parse(ts);
         while (ts.cur()) {
@@ -110,6 +113,9 @@ export class Expression1 implements ISyntaxTree {
             }
             res = t;
         }
+        if (res.operator === undefined) {
+            return res.operand;
+        }
         return res;
     }
 
@@ -117,6 +123,7 @@ export class Expression1 implements ISyntaxTree {
     operand: ISyntaxTree;
     arrayArg: Expression;
     funcArgs: Expression[];
+    type: string = 'Expression1';
 }
 
 /**
@@ -130,7 +137,7 @@ export class Expression1 implements ISyntaxTree {
  */
 @SyntaxTreeType
 export class Expression2 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): Expression2 {
+    static parse(ts: ITokenIterator): ISyntaxTree {
         let res = new Expression2();
         if (ts.cur().text === '┐') {
             ts.accept();
@@ -155,11 +162,15 @@ export class Expression2 implements ISyntaxTree {
         } else {
             res.operand = Expression1.parse(ts);
         }
+        if (res.operator === undefined) {
+            return res.operand;
+        }
         return res;
     }
 
     operator: string;
     operand: ISyntaxTree;
+    type: string = 'Expression2';
 }
 /**
  * Left-to-Right Association 2-ary Operators (Multiply)
@@ -168,7 +179,7 @@ export class Expression2 implements ISyntaxTree {
  */
 @SyntaxTreeType
 export class Expression3 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): Expression3 {
+    static parse(ts: ITokenIterator): ISyntaxTree {
         let res = new Expression3();
         res.operand1 = Expression2.parse(ts);
         while (ts.cur()) {
@@ -183,12 +194,16 @@ export class Expression3 implements ISyntaxTree {
             }
             res = t;
         }
+        if (res.operator === undefined) {
+            return res.operand1;
+        }
         return res;
     }
 
     operator: string;
     operand1: ISyntaxTree;
     operand2: ISyntaxTree;
+    type: string = 'Expression3';
 }
 /**
  * Left-to-Right Association 2-ary Operators (Addition / Subtraction)
@@ -198,7 +213,7 @@ export class Expression3 implements ISyntaxTree {
  */
 @SyntaxTreeType
 export class Expression4 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): Expression4 {
+    static parse(ts: ITokenIterator): ISyntaxTree {
         let res = new Expression4();
         res.operand1 = Expression3.parse(ts);
         while (ts.cur()) {
@@ -217,12 +232,16 @@ export class Expression4 implements ISyntaxTree {
             }
             res = t;
         }
+        if (res.operator === undefined) {
+            return res.operand1;
+        }
         return res;
     }
 
     operator: string;
     operand1: ISyntaxTree;
     operand2: ISyntaxTree;
+    type: string = 'Expression4';
 }
 /**
  * Left-to-Right Association, Relation Operator
@@ -234,7 +253,7 @@ export class Expression4 implements ISyntaxTree {
  */
 @SyntaxTreeType
 export class Expression5 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): Expression5 {
+    static parse(ts: ITokenIterator): ISyntaxTree {
         let res = new Expression5();
         res.operand1 = Expression4.parse(ts);
         while (ts.cur()) {
@@ -255,17 +274,21 @@ export class Expression5 implements ISyntaxTree {
             } else if (ts.cur().text === '≥') {
                 ts.accept();
                 res.operator = 'greater-than-or-equal-to';
-                res.operand2 = Expression4.parse(ts);                
+                res.operand2 = Expression4.parse(ts);
             } else {
                 break;
             }
             res = t;
-        }        
+        }
+        if (res.operator === undefined) {
+            return res.operand1;
+        }
         return res;
     }
     operator: string;
     operand1: ISyntaxTree;
     operand2: ISyntaxTree;
+    type: string = 'Expression5';
 }
 /**
  * Left-to-Right Association, Relation Operator
@@ -275,7 +298,7 @@ export class Expression5 implements ISyntaxTree {
  */
 @SyntaxTreeType
 export class Expression6 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): Expression6 {
+    static parse(ts: ITokenIterator): ISyntaxTree {
         let res = new Expression6();
         res.operand1 = Expression5.parse(ts);
         while (ts.cur()) {
@@ -293,12 +316,16 @@ export class Expression6 implements ISyntaxTree {
                 break;
             }
             res = t;
-        }        
+        }
+        if (res.operator === undefined) {
+            return res.operand1;
+        }
         return res;
     }
     operator: string;
     operand1: ISyntaxTree;
     operand2: ISyntaxTree;
+    type: string = 'Expression6';
 }
 /**
  * Left-to-Right Association, Logical Or
@@ -307,7 +334,7 @@ export class Expression6 implements ISyntaxTree {
  */
 @SyntaxTreeType
 export class Expression7 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): Expression7 {
+    static parse(ts: ITokenIterator): ISyntaxTree {
         let res = new Expression7();
         res.operand1 = Expression6.parse(ts);
         while (ts.cur()) {
@@ -321,12 +348,16 @@ export class Expression7 implements ISyntaxTree {
                 break;
             }
             res = t;
-        }        
+        }
+        if (res.operator === undefined) {
+            return res.operand1;
+        }
         return res;
     }
     operator: string;
     operand1: ISyntaxTree;
     operand2: ISyntaxTree;
+    type: string = 'Expression7';
 }
 /**
  * Left-to-Right Association, Logical And
@@ -335,7 +366,7 @@ export class Expression7 implements ISyntaxTree {
  */
 @SyntaxTreeType
 export class Expression8 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): Expression8 {
+    static parse(ts: ITokenIterator): ISyntaxTree {
         let res = new Expression8();
         res.operand1 = Expression7.parse(ts);
         while (ts.cur()) {
@@ -349,12 +380,16 @@ export class Expression8 implements ISyntaxTree {
                 break;
             }
             res = t;
-        }        
+        }
+        if (res.operator === undefined) {
+            return res.operand1;
+        }
         return res;
     }
     operator: string;
     operand1: ISyntaxTree;
     operand2: ISyntaxTree;
+    type: string = 'Expression8';
 }
 /**
  * Right-to-Left Association, Assignment Operator
@@ -363,23 +398,27 @@ export class Expression8 implements ISyntaxTree {
  */
 @SyntaxTreeType
 export class Expression9 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): Expression9 {
-	let res = new Expression9();
-	res.operand1 = Expression8.parse(ts);
-	while (ts.cur()) {
-	    if (ts.cur().text === ':=') {
-		ts.accept();
-		res.operator = ':=';
-		res.operand2 = Expression9.parse(ts);
-	    } else {
-		break;
-	    }
-	}
-	return res;  
+    static parse(ts: ITokenIterator): ISyntaxTree {
+        let res = new Expression9();
+        res.operand1 = Expression8.parse(ts);
+        while (ts.cur()) {
+            if (ts.cur().text === ':=') {
+                ts.accept();
+                res.operator = ':=';
+                res.operand2 = Expression9.parse(ts);
+            } else {
+                break;
+            }
+        }
+        if (res.operator === undefined) {
+            return res.operand1;
+        }
+        return res;
     }
     operator: string;
     operand1: ISyntaxTree;
     operand2: ISyntaxTree;
+    type: string = 'Expression9';
 }
 
 Expression.Top = Expression9;

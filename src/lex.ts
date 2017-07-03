@@ -1,5 +1,5 @@
 import { isAlphaOrUnderline, isElementOfWord, isNumber, isSpace } from './utils';
-import { IToken, ITokenConstructor, TokenTypeHub } from './token';
+import Token, * as TokenType from './token';
 import { ITokenIterator, TokenIterator } from './token-iterator';
 
 export interface ILexer {
@@ -40,8 +40,8 @@ const makeTrie = (container: any) => (type: string) => (str: string) => {
   ptr['type'] = type;
 }
 let func = makeTrie(symbolTrie);
-DelimiterSet.forEach(func('delimiter'));
-OperatorSet.forEach(func('operator'));
+DelimiterSet.forEach(func(TokenType.DELIMITER));
+OperatorSet.forEach(func(TokenType.OPERATOR));
 console.log(JSON.stringify(symbolTrie, null, 2))
 
 export default class Lexer {
@@ -50,25 +50,24 @@ export default class Lexer {
     let bp: number = 0, cp: number = 0; // text[bp, cp)
     while (bp < text.length) {
       let type = '';
-      let con: ITokenConstructor;
       let ch = text[cp++];
       if (isAlphaOrUnderline(ch)) {
         // Keyword | Identifier
         while (isElementOfWord(text[cp])) cp++;
         let t = text.slice(bp, cp);
         if (KeywordSet.has(t)) {
-          type = 'keyword';
+          type = TokenType.KEYWORD;
         } else {
-          type = 'identifier';
+          type = TokenType.IDENTIFIER;
         }
       } else if (isNumber(ch)) {
         // Numeric Literal | Error
         while (isNumber(text[cp])) cp++;
         if (isAlphaOrUnderline(text[cp])) {
           while (isElementOfWord(text[cp])) cp++;
-          type = 'error';
+          type = TokenType.ERROR;
         } else {
-          type = 'literal';
+          type = TokenType.LITERAL;
         }
       } else if (SpaceSet.has(ch)) {
         bp = cp;
@@ -76,7 +75,7 @@ export default class Lexer {
       } else {
         // Symbol: Delimiter | Operator
         // Policy: Match as long as possible
-        type = 'error';
+        type = TokenType.ERROR;
         let ptr = symbolTrie[ch];
         if (ptr) {
           while (ptr[text[cp]]) {
@@ -89,7 +88,7 @@ export default class Lexer {
         }
       }
       // gen & append token
-      res.append(new (TokenTypeHub.get(type))(text, bp, cp));
+      res.append(new Token(type, text.slice(bp, cp), bp, cp));
       bp = cp; // update base ptr
     }
     return res;

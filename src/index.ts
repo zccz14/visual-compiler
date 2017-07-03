@@ -23,10 +23,8 @@ console.log(STHub);
 // let tit = Lexer.lex('d((2))');
 // let tit = Lexer.lex('d((2 + 1))');
 // let tit = Lexer.lex('int a; a > 1 ∧ a < 10');
-let tit = Lexer.lex('switch a of case 0: a++ case 1: a-- end');
-log(tit.cur);
-let i = 0;
-while (tit.isEnded() == false) {
-    console.log('#' + i++);
-    log(StatementList.parse(tit));
-}
+// let tit = Lexer.lex('case a of 0: a++ 1: a-- end');
+// let tit = Lexer.lex('++a');
+let tit = Lexer.lex('{case a of 0: a++ 1: a-- otherwise: a := a + 1 end}; a');
+let st = StatementList.parse(tit);
+log(st);

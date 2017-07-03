@@ -5,20 +5,28 @@ import Statement, { StatementList } from "./statement";
 import Expression from "./expression";
 
 /**
- * <Switch> ::= <Keyword switch> <Expression> <Keyword of> <BranchList> <Keyword end>
+ * <Switch> ::= <Keyword case> <Expression> <Keyword of> <BranchList> <Keyword end>
  */
 @SyntaxTreeType
 export default class Switch implements ISyntaxTree {
     static parse(ts: ITokenIterator): Switch {
         let res = new Switch();
-        if (ts.cur().text === 'switch') {
+        if (ts.cur().text === 'case') {
             ts.accept();
             res.expr = Expression.parse(ts);
             if (ts.cur().text === 'of') {
                 ts.accept();
                 while (ts.cur()) {
                     // parse branchs
-                    if (ts.cur().text === 'case') {
+                    if (ts.cur().text === 'otherwise') {
+                        ts.accept();
+                        if (ts.cur().text === ':') {
+                            ts.accept();
+                            res.otherwise = StatementList.parse(ts);
+                        } else {
+                            throw new Error('SyntaxError: Expect : after otherwise');
+                        }
+                    } else if (ts.cur().text !== 'end') {
                         res.branchs.push(Branch.parse(ts));
                     } else {
                         break;
@@ -39,26 +47,22 @@ export default class Switch implements ISyntaxTree {
     }
     expr: Expression;
     branchs: Branch[] = [];
+    otherwise: StatementList;
 }
 
 /**
- * <Branch> ::= <Keyword case> <Expression> <Delimiter colon> <StatementList>
+ * <Branch> ::= <Expression> <Delimiter colon> <StatementList>
  */
 @SyntaxTreeType
 export class Branch implements ISyntaxTree {
     static parse(ts: ITokenIterator): Branch {
         let res = new Branch();
-        if (ts.cur().text === 'case') {
+        res.expr = Expression.parse(ts);
+        if (ts.cur().text === ':') {
             ts.accept();
-            res.expr = Expression.parse(ts);
-            if (ts.cur().text === ':') {
-                ts.accept();
-                res.statements = StatementList.parse(ts);
-            } else {
-                throw new Error('SyntaxError: expect :');
-            }
+            res.statements = StatementList.parse(ts);
         } else {
-            throw new Error('SyntaxError: expect case');
+            throw new Error('SyntaxError: expect :');
         }
         return res;
     }

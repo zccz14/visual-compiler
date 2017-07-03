@@ -1,5 +1,6 @@
 import { SyntaxTreeType, ISyntaxTree } from "../syntax-tree";
 import { ITokenIterator } from "../token-iterator";
+import { DELIMITER, LITERAL } from "../token";
 /**
  * <Demension List> ::= <Delimiter LeftBracket> <Number> <Delimiter RightBracket> <Demension List>
  */
@@ -7,22 +8,22 @@ import { ITokenIterator } from "../token-iterator";
 export default class DemensionList implements ISyntaxTree {
     static parse(ts: ITokenIterator): DemensionList {
         let res = new DemensionList();
-        if (ts.cur().getType() === 'delimiter' && ts.cur().text === '[') {
+        if (ts.cur().type === DELIMITER && ts.cur().text === '[') {
             ts.accept();
             while (true) {
-                if (ts.cur().getType() === 'literal') {
+                if (ts.cur().type === LITERAL) {
                     let number = parseInt(ts.cur().text, 10);
                     res.list.push(number);
                     ts.accept();
                 } else {
                     throw new Error('SyntaxError: Expect Numeric Literal');
                 }
-                if (ts.cur().getType() === 'delimiter' && ts.cur().text === ']'){
+                if (ts.cur().type === DELIMITER && ts.cur().text === ']') {
                     ts.accept();
                 } else {
-                    throw new Error('SyntaxError: Expect Delimiter ]');                    
+                    throw new Error('SyntaxError: Expect Delimiter ]');
                 }
-                if (ts.cur() && ts.cur().getType() === 'delimiter' && ts.cur().text === '[') {
+                if (ts.cur() && ts.cur().type === DELIMITER && ts.cur().text === '[') {
                     ts.accept();
                 } else {
                     break;

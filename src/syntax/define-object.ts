@@ -1,6 +1,7 @@
 import { SyntaxTreeType, ISyntaxTree } from "../syntax-tree";
 import { ITokenIterator } from "../token-iterator";
 import DefineArray from "./define-array";
+import { IDENTIFIER, DELIMITER } from "../token";
 /**
  * Define Object ST
  * <Define Object> ::= <Identifier> | <Define Array>
@@ -9,8 +10,8 @@ import DefineArray from "./define-array";
 export default class DefineObject implements ISyntaxTree {
     static parse(ts: ITokenIterator): DefineObject {
         let res = new DefineObject();
-        if (ts.cur().getType() === 'identifier') {
-            if (ts.peek(1) && ts.peek(1).getType() === 'delimiter' && ts.peek(1).text === '[') {
+        if (ts.cur().type === IDENTIFIER) {
+            if (ts.peek(1) && ts.peek(1).type === DELIMITER && ts.peek(1).text === '[') {
                 // Define Array
                 let array = DefineArray.parse(ts);
                 res.id = array.id;

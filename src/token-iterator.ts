@@ -1,22 +1,22 @@
-import { IToken } from "./token";
+import Token from "./token";
 export interface ITokenIteratorConstructor {
-  new (tokens: IToken[]);
+  new (tokens: Token[]);
 }
 export interface ITokenIterator {
   accept(): void;
-  append(token: IToken): void;
+  append(token: Token): void;
   reset(): void;
   skip(count: number): void;
-  peek(index: number): IToken;
-  load(tokens: IToken[]): void;
+  peek(index: number): Token;
+  load(tokens: Token[]): void;
   isEnded(): boolean;
-  cur(): IToken;
+  cur(): Token;
 }
 export class TokenIterator implements ITokenIterator {
   reset(): void {
     this.base = 0;
   }
-  private tokens: IToken[] = [];
+  private tokens: Token[] = [];
   private base: number = 0;
   public cur() { return this.tokens[this.base]; }
   public accept(): void {
@@ -25,12 +25,12 @@ export class TokenIterator implements ITokenIterator {
     }
   }
 
-  public load(tokens: IToken[]): void {
+  public load(tokens: Token[]): void {
     this.tokens = tokens;
     this.base = 0;
   }
 
-  public peek(index: number): IToken {
+  public peek(index: number): Token {
     return this.tokens[this.base + index];
   }
 
@@ -46,7 +46,7 @@ export class TokenIterator implements ITokenIterator {
     return this.base >= this.tokens.length;
   }
 
-  public append(token: IToken): void {
+  public append(token: Token): void {
     console.log(token);
     this.tokens.push(token);
   }
