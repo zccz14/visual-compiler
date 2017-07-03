@@ -111,6 +111,9 @@ export class Expression1 implements ISyntaxTree {
             } else {
                 break;
             }
+            if (res.operator === undefined) {
+                t.operand = res.operand;
+            }
             res = t;
         }
         if (res.operator === undefined) {
