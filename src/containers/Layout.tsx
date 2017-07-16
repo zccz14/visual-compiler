@@ -31,9 +31,9 @@ class Layout extends React.Component<{ dispatch: Dispatch<any>; stage: string; c
                         padding: '64px 15px'
                     }}
                 >
-                    <Code />
-                    <Lex />
-                    <Syntax/>
+                    {stage === 'code'? <Code />: null}
+                    {stage === 'lex'? <Lex />: null}
+                    {stage === 'syntax'? <Syntax />: null}
                 </div>
                 <Bottom
                     label={stage}

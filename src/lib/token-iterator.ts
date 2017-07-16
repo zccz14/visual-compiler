@@ -47,7 +47,6 @@ export class TokenIterator implements ITokenIterator {
   }
 
   public append(token: Token): void {
-    console.log(token);
     this.tokens.push(token);
   }
 }

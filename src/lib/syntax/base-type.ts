@@ -1,6 +1,8 @@
 import { SyntaxTreeType, ISyntaxTree } from "../syntax-tree";
 import { ITokenIterator } from "../token-iterator";
 import { KEYWORD } from "../token";
+import { CESyntax, IIntermediate } from "../compiler";
+import Context from "../context";
 /**
  * BaseType ST
  * <BaseType> ::= <Keyword int> | 
@@ -10,6 +12,12 @@ import { KEYWORD } from "../token";
  */
 @SyntaxTreeType
 export default class BaseType implements ISyntaxTree {
+    gen(list: IIntermediate[]): void {
+        throw new Error("Method not implemented.");
+    }
+    check(context: Context): void {
+        throw new Error("Method not implemented.");
+    }
     static parse(ts: ITokenIterator): BaseType {
         let res = new BaseType();
         if (ts.cur().type === KEYWORD) {
@@ -18,10 +26,10 @@ export default class BaseType implements ISyntaxTree {
                 ts.accept();
                 res.type = t;
             } else {
-                throw new Error('SyntaxError: Expect basetype');
+                throw new CESyntax(`${t} is not a basetype`, ts.cur());
             }
         } else {
-            throw new Error('SyntaxError: Expect basetype');
+            throw new CESyntax('miss a keyword', ts.cur());
         }
         return res;
     }

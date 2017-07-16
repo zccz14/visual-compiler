@@ -9,6 +9,7 @@ import 'codemirror/mode/clike/clike';
 require('codemirror/addon/selection/active-line');
 require('codemirror/addon/edit/matchbrackets');
 import "codemirror/lib/codemirror.css";
+import "./code.css";
 
 class Code extends React.Component<{ dispatch: Dispatch<any>; text: string; display: boolean; }, {}> {
     render() {
@@ -24,14 +25,15 @@ class Code extends React.Component<{ dispatch: Dispatch<any>; text: string; disp
             foldGutter: true,
             lineWrapping: true,
             matchBrackets: true,
-            mode: "clike",
+            mode: "clike"
         };
         return (
-            <div>
+            <div style={{ height: window.innerHeight - 130, position: 'relative' }}>
                 <CodeMirror
                     onChange={v => onSubmit(v)}
                     value={text}
                     options={option}
+                    className="full-height"
                 />
             </div>
         );

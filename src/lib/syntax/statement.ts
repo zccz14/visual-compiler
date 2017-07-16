@@ -1,4 +1,4 @@
-import { ISyntaxTree, SyntaxTreeType } from "../syntax-tree";
+import { ISyntaxTree, SyntaxTreeType, SyntaxTreeNode } from "../syntax-tree";
 import { ITokenIterator } from "../token-iterator";
 
 import Expression from "./expression";
@@ -8,6 +8,10 @@ import { BaseTypeSet } from "./base-type";
 import Definition from "./definition";
 import Switch from "./switch";
 import { IDENTIFIER, LITERAL } from "../token";
+import Context from "../context";
+import { IIntermediate } from "../compiler";
+import Condition from "./condition";
+import Quad, { merge } from "../quad";
 
 /**
  * <Statement> ::= <Expression> | <WhileDo> | <DoWhile> | <Definition> | <Switch>
@@ -15,6 +19,23 @@ import { IDENTIFIER, LITERAL } from "../token";
  */
 @SyntaxTreeType
 export default class Statement implements ISyntaxTree {
+    gen(list: IIntermediate[]): void {
+        if (this.statement) {
+            this.statement.gen(list);
+            this['CHAIN'] = this.statement['CHAIN'] || 0;
+        }
+    }
+    check(context: Context): void {
+        if (this.statement instanceof StatementList) {
+            // Code Block
+            context = new Context(context);
+        }
+        if (this.statement) {
+            this.statement.check(context);
+        } else {
+            // empty statement
+        }
+    }
     static parse(ts: ITokenIterator): Statement {
         let res = new Statement();
         if (ts.cur().text === 'while') {
@@ -23,6 +44,8 @@ export default class Statement implements ISyntaxTree {
             res.statement = DoWhile.parse(ts);
         } else if (ts.cur().text === 'case') {
             res.statement = Switch.parse(ts);
+        } else if (ts.cur().text === 'if') {
+            res.statement = Condition.parse(ts);
         } else if (BaseTypeSet.has(ts.cur().text)) {
             res.statement = Definition.parse(ts);
         } else if (ts.cur().type === IDENTIFIER || ts.cur().type === LITERAL
@@ -38,8 +61,6 @@ export default class Statement implements ISyntaxTree {
             } else {
                 throw new Error('SyntaxError: Expect }');
             }
-        } else {
-            throw new Error('SyntaxError: Statement');
         }
         return res;
     }
@@ -50,8 +71,18 @@ export default class Statement implements ISyntaxTree {
 /**
  * <StatementList> ::= <Statement> <Delimiter semicolon> <StatementList>
  */
-@SyntaxTreeType
+@SyntaxTreeNode('root')
 export class StatementList implements ISyntaxTree {
+    gen(list: Quad[]): void {
+        this['CHAIN'] = 0;
+        this.list.forEach(v => {
+            v.gen(list);
+            merge(list, this['CHAIN'], v['CHAIN']);
+        });
+    }
+    check(context: Context): void {
+        this.list.forEach(v => v.check(context));
+    }
     static parse(ts: ITokenIterator): StatementList {
         let res = new StatementList();
         while (ts.cur()) {

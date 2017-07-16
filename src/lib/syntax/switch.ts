@@ -3,12 +3,20 @@ import { ITokenIterator } from "../token-iterator";
 
 import { StatementList } from "./statement";
 import Expression from "./expression";
+import Context from "../context";
+import { IIntermediate } from "../compiler";
 
 /**
  * <Switch> ::= <Keyword case> <Expression> <Keyword of> <BranchList> <Keyword end>
  */
 @SyntaxTreeType
 export default class Switch implements ISyntaxTree {
+    gen(list: IIntermediate[]): void {
+        throw new Error("Method not implemented.");
+    }
+    check(context: Context): void {
+        throw new Error("Method not implemented.");
+    }
     static parse(ts: ITokenIterator): Switch {
         let res = new Switch();
         if (ts.cur().text === 'case') {
@@ -55,6 +63,12 @@ export default class Switch implements ISyntaxTree {
  */
 @SyntaxTreeType
 export class Branch implements ISyntaxTree {
+    gen(list: IIntermediate[]): void {
+        throw new Error("Method not implemented.");
+    }
+    check(context: Context): boolean {
+        throw new Error("Method not implemented.");
+    }
     static parse(ts: ITokenIterator): Branch {
         let res = new Branch();
         res.expr = Expression.parse(ts);

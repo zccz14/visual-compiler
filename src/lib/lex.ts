@@ -42,7 +42,6 @@ const makeTrie = (container: any) => (type: string) => (str: string) => {
 let func = makeTrie(symbolTrie);
 DelimiterSet.forEach(func(TokenType.DELIMITER));
 OperatorSet.forEach(func(TokenType.OPERATOR));
-console.log(JSON.stringify(symbolTrie, null, 2))
 
 export default class Lexer {
   public static lex(text: string): ITokenIterator {

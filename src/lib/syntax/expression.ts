@@ -1,36 +1,139 @@
 import { ISyntaxTree, ISyntaxTreeConstructor, SyntaxTreeType } from "../syntax-tree";
 import { ITokenIterator } from "../token-iterator";
 import { IDENTIFIER, LITERAL, DELIMITER } from "../token";
+import { CESyntax, CESemantic, IIntermediate } from "../compiler";
+import Context from "../context";
+import { BaseTypeSet } from "./base-type";
+import Quad from "../quad";
+
+abstract class AExpression implements ISyntaxTree {
+    gen(list: IIntermediate[]): void {
+        throw new Error("Method not implemented.");
+    }
+    check(context: Context): void {
+        throw new Error("Method not implemented.");
+    }
+    AlgebraCast(type1: string, type2: string): string {
+        if (BaseTypeSet.has(type1) && BaseTypeSet.has(type2)) {
+            if (type1 === type2) {
+                return type1;
+            }
+            if ('float' === type1 || 'float' === type2) {
+                return 'float';
+            }
+            return 'int';
+        } else {
+            throw new CESemantic('Only Allow BaseType Cast', this);
+        }
+    }
+
+    type: string;
+    lvalue: boolean = false;
+    constant: boolean = false;
+    value: number;
+    name: string;
+    get label(): string {
+        if (this.name) {
+            return this.name;
+        }
+        if (this.constant) {
+            return this.value.toString();
+        }
+        return this['id'];
+    }
+}
+
 /**
  * <Expression> ::= <ExpressionTop>
  */
 @SyntaxTreeType
-export default class Expression implements ISyntaxTree {
+export default class Expression extends AExpression {
+    gen(list: IIntermediate[]): void {
+        this.expr.gen(list);
+    }
+    check(context: Context): void {
+        this.expr.check(context);
+        this.type = this.expr.type;
+        this.lvalue = this.expr.lvalue;
+        this.constant = this.expr.constant;
+        if (this.constant) {
+            this.value = this.expr.value;
+        }
+    }
     static parse(ts: ITokenIterator): Expression {
         let res = new Expression();
-        res.expr = Expression.Top.parse(ts);
+        res.expr = <AExpression>Expression.Top.parse(ts);
         return res;
     }
 
     static Top: ISyntaxTreeConstructor;
-    expr: ISyntaxTree;
-    type: string = 'Expression';
+    expr: AExpression;
+    _type: string = 'Expression';
+    type: string;
 }
 
 /**
- * <ExpressionButtom> ::= (<Expression>) | <Identifier> | <Literal Numeric>
+ * <Expression0> ::= (<Expression>) | <Identifier> | <Literal Numeric>
  */
 
 @SyntaxTreeType
-export class ExpressionBottom implements ISyntaxTree {
-    static parse(ts: ITokenIterator): ExpressionBottom {
-        let res = new ExpressionBottom();
+export class Expression0 extends AExpression {
+    gen(list: IIntermediate[]): void {
+        if (this.expr) {
+            this.expr.gen(list);
+        }
+    }
+    check(context: Context): void {
+        if (this.id) {
+            // identifier: check if defined
+            let ctx = context;
+            let isFound = false;
+            while (true) {
+                let symbol = ctx.content.get(this.id);
+                if (symbol) {
+                    isFound = true;
+                    this.type = symbol.type;
+                    this.lvalue = true;
+                    this.constant = !!symbol.const;
+                    // if (this.constant) { // TODO: const int
+                    //     this.value = symbol.value;
+                    // }
+                    break;
+                }
+                if (ctx.parent) {
+                    ctx = ctx.parent;
+                } else {
+                    break;
+                }
+            }
+            if (!isFound) {
+                throw new CESemantic(`${this.id} is not defined in this scope`, this);
+            }
+        } else if (this.expr) {
+            // (Expr)
+            this.expr.check(context);
+            // keep type, lvalue and constant
+            this.type = this.expr.type;
+            this.lvalue = this.expr.lvalue
+            this.constant = this.expr.constant;
+            if (this.constant) {
+                this.value = this.expr.value;
+            }
+        } else if (this.value !== undefined) {
+            this.type = (~~this.value === this.value) ? 'int' : 'float';
+            this.lvalue = false;
+            this.constant = true;
+            // this.value = this.value 
+        }
+    }
+    static parse(ts: ITokenIterator): Expression0 {
+        let res = new Expression0();
         if (ts.cur().type === IDENTIFIER) {
             // Identifier
             res.id = ts.cur().text;
             ts.accept();
         } else if (ts.cur().type === LITERAL) {
-            res.value = parseInt(ts.cur().text, 10);
+            res.value = parseFloat(ts.cur().text);
             ts.accept();
         } else if (ts.cur().type === DELIMITER && ts.cur().text === '(') {
             ts.accept();
@@ -40,6 +143,8 @@ export class ExpressionBottom implements ISyntaxTree {
             } else {
                 throw new Error('SyntaxError: Expect )');
             }
+        } else {
+            throw new CESyntax('Miss Expression', ts.cur());
         }
         return res;
     }
@@ -47,7 +152,7 @@ export class ExpressionBottom implements ISyntaxTree {
     id: string;
     expr: Expression;
     value: number;
-    type: string = 'ExpressionBottom';
+    _type: string = 'Expression0';
 }
 
 /**
@@ -59,10 +164,13 @@ export class ExpressionBottom implements ISyntaxTree {
  *
  */
 @SyntaxTreeType
-export class Expression1 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): ISyntaxTree {
+export class Expression1 extends AExpression {
+    check(context: Context): boolean {
+        throw new Error("Method not implemented.");
+    }
+    static parse(ts: ITokenIterator): AExpression {
         let res = new Expression1();
-        res.operand = ExpressionBottom.parse(ts);
+        res.operand = Expression0.parse(ts);
         while (ts.cur()) {
             let t = new Expression1();
             t.operand = res;
@@ -123,7 +231,7 @@ export class Expression1 implements ISyntaxTree {
     }
 
     operator: string;
-    operand: ISyntaxTree;
+    operand: AExpression;
     arrayArg: Expression;
     funcArgs: Expression[];
     type: string = 'Expression1';
@@ -139,8 +247,11 @@ export class Expression1 implements ISyntaxTree {
  *                   <Expression1>
  */
 @SyntaxTreeType
-export class Expression2 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): ISyntaxTree {
+export class Expression2 extends AExpression {
+    check(context: Context): boolean {
+        throw new Error("Method not implemented.");
+    }
+    static parse(ts: ITokenIterator): AExpression {
         let res = new Expression2();
         if (ts.cur().text === '┐') {
             ts.accept();
@@ -172,7 +283,7 @@ export class Expression2 implements ISyntaxTree {
     }
 
     operator: string;
-    operand: ISyntaxTree;
+    operand: AExpression;
     type: string = 'Expression2';
 }
 /**
@@ -181,8 +292,11 @@ export class Expression2 implements ISyntaxTree {
  *                   <Expression2>
  */
 @SyntaxTreeType
-export class Expression3 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): ISyntaxTree {
+export class Expression3 extends AExpression {
+    check(context: Context): boolean {
+        throw new Error("Method not implemented.");
+    }
+    static parse(ts: ITokenIterator): AExpression {
         let res = new Expression3();
         res.operand1 = Expression2.parse(ts);
         while (ts.cur()) {
@@ -204,8 +318,8 @@ export class Expression3 implements ISyntaxTree {
     }
 
     operator: string;
-    operand1: ISyntaxTree;
-    operand2: ISyntaxTree;
+    operand1: AExpression;
+    operand2: AExpression;
     type: string = 'Expression3';
 }
 /**
@@ -215,8 +329,38 @@ export class Expression3 implements ISyntaxTree {
  *                   <Expression3>
  */
 @SyntaxTreeType
-export class Expression4 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): ISyntaxTree {
+export class Expression4 extends AExpression {
+    gen(list: IIntermediate[]): void {
+        if (!this.operand1.constant) {
+            this.operand1.gen(list);
+        }
+        if (!this.operand2.constant) {
+            this.operand2.gen(list);
+        }
+        if (!this.constant) {
+            this.name = `T${list.length}`;
+            list.push(new Quad(this.operator, this.operand1.label, this.operand2.label, this.label));
+        }
+    }
+    check(context: Context): void {
+        this.operand1.check(context);
+        this.operand2.check(context);
+        this.type = this.AlgebraCast(this.operand1.type, this.operand2.type);
+        this.lvalue = false;
+        this.constant = this.operand1.constant && this.operand2.constant;
+        // Constant Calculation
+        if (this.constant) {
+            switch (this.operator) {
+                case 'addition':
+                    this.value = this.operand1.value + this.operand2.value;
+                    break;
+                case 'subtraction':
+                    this.value = this.operand1.value - this.operand2.value;
+                    break;
+            }
+        }
+    }
+    static parse(ts: ITokenIterator): AExpression {
         let res = new Expression4();
         res.operand1 = Expression3.parse(ts);
         while (ts.cur()) {
@@ -242,9 +386,9 @@ export class Expression4 implements ISyntaxTree {
     }
 
     operator: string;
-    operand1: ISyntaxTree;
-    operand2: ISyntaxTree;
-    type: string = 'Expression4';
+    operand1: AExpression;
+    operand2: AExpression;
+    _type: string = 'Expression4';
 }
 /**
  * Left-to-Right Association, Relation Operator
@@ -255,8 +399,18 @@ export class Expression4 implements ISyntaxTree {
  *                   <Expression4>
  */
 @SyntaxTreeType
-export class Expression5 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): ISyntaxTree {
+export class Expression5 extends AExpression {
+    gen(list: IIntermediate[]): void {
+        this['TC'] = list.length + 1;
+        list.push(new Quad(`j_${this.operator}`, this.operand1.label, this.operand2.label, 0));
+        this['FC'] = list.length + 1;
+        list.push(new Quad(`j`, '', '', 0));
+    }
+    check(context: Context): void {
+        this.operand1.check(context);
+        this.operand2.check(context);
+    }
+    static parse(ts: ITokenIterator): AExpression {
         let res = new Expression5();
         res.operand1 = Expression4.parse(ts);
         while (ts.cur()) {
@@ -289,9 +443,9 @@ export class Expression5 implements ISyntaxTree {
         return res;
     }
     operator: string;
-    operand1: ISyntaxTree;
-    operand2: ISyntaxTree;
-    type: string = 'Expression5';
+    operand1: AExpression;
+    operand2: AExpression;
+    _type: string = 'Expression5';
 }
 /**
  * Left-to-Right Association, Relation Operator
@@ -300,8 +454,12 @@ export class Expression5 implements ISyntaxTree {
  *                   <Expression5>
  */
 @SyntaxTreeType
-export class Expression6 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): ISyntaxTree {
+export class Expression6 extends AExpression {
+    type: string;
+    check(context: Context): boolean {
+        throw new Error("Method not implemented.");
+    }
+    static parse(ts: ITokenIterator): AExpression {
         let res = new Expression6();
         res.operand1 = Expression5.parse(ts);
         while (ts.cur()) {
@@ -326,9 +484,9 @@ export class Expression6 implements ISyntaxTree {
         return res;
     }
     operator: string;
-    operand1: ISyntaxTree;
-    operand2: ISyntaxTree;
-    type: string = 'Expression6';
+    operand1: AExpression;
+    operand2: AExpression;
+    _type: string = 'Expression6';
 }
 /**
  * Left-to-Right Association, Logical Or
@@ -336,8 +494,12 @@ export class Expression6 implements ISyntaxTree {
  *                   <Expression6>
  */
 @SyntaxTreeType
-export class Expression7 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): ISyntaxTree {
+export class Expression7 extends AExpression {
+    type: string;
+    check(context: Context): boolean {
+        throw new Error("Method not implemented.");
+    }
+    static parse(ts: ITokenIterator): AExpression {
         let res = new Expression7();
         res.operand1 = Expression6.parse(ts);
         while (ts.cur()) {
@@ -358,9 +520,9 @@ export class Expression7 implements ISyntaxTree {
         return res;
     }
     operator: string;
-    operand1: ISyntaxTree;
-    operand2: ISyntaxTree;
-    type: string = 'Expression7';
+    operand1: AExpression;
+    operand2: AExpression;
+    _type: string = 'Expression7';
 }
 /**
  * Left-to-Right Association, Logical And
@@ -368,8 +530,12 @@ export class Expression7 implements ISyntaxTree {
  *                   <Expression7>
  */
 @SyntaxTreeType
-export class Expression8 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): ISyntaxTree {
+export class Expression8 extends AExpression {
+    type: string;
+    check(context: Context): boolean {
+        throw new Error("Method not implemented.");
+    }
+    static parse(ts: ITokenIterator): AExpression {
         let res = new Expression8();
         res.operand1 = Expression7.parse(ts);
         while (ts.cur()) {
@@ -390,9 +556,9 @@ export class Expression8 implements ISyntaxTree {
         return res;
     }
     operator: string;
-    operand1: ISyntaxTree;
-    operand2: ISyntaxTree;
-    type: string = 'Expression8';
+    operand1: AExpression;
+    operand2: AExpression;
+    _type: string = 'Expression8';
 }
 /**
  * Right-to-Left Association, Assignment Operator
@@ -400,8 +566,31 @@ export class Expression8 implements ISyntaxTree {
  *                   <Expression8>
  */
 @SyntaxTreeType
-export class Expression9 implements ISyntaxTree {
-    static parse(ts: ITokenIterator): ISyntaxTree {
+export class Expression9 extends AExpression {
+    gen(list: IIntermediate[]): void {
+        if (!this.operand2.constant) {
+            this.operand2.gen(list);
+        }
+        if (!this.operand1.constant) {
+            this.operand1.gen(list);
+        }
+        list.push(new Quad(':=', this.operand2.label, '', this.operand1.label));
+    }
+    check(context: Context): boolean {
+        this.operand1.check(context);
+        this.operand2.check(context);
+        if (!this.operand1.lvalue) {
+            throw new CESemantic(`assign to a non-left-value`, this);
+        }
+        this.lvalue = false;
+        this.type = this.operand1.type; // TODO: Type Cast
+        this.constant = this.operand2.constant;
+        if (this.constant) {
+            this.value = this.operand2.value;
+        }
+        return true;
+    }
+    static parse(ts: ITokenIterator): AExpression {
         let res = new Expression9();
         res.operand1 = Expression8.parse(ts);
         while (ts.cur()) {
@@ -419,9 +608,10 @@ export class Expression9 implements ISyntaxTree {
         return res;
     }
     operator: string;
-    operand1: ISyntaxTree;
-    operand2: ISyntaxTree;
-    type: string = 'Expression9';
+    operand1: AExpression;
+    operand2: AExpression;
+    _type: string = 'Expression9';
+    type: string;
 }
 
 Expression.Top = Expression9;

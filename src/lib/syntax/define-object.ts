@@ -2,12 +2,20 @@ import { SyntaxTreeType, ISyntaxTree } from "../syntax-tree";
 import { ITokenIterator } from "../token-iterator";
 import DefineArray from "./define-array";
 import { IDENTIFIER, DELIMITER } from "../token";
+import Context from "../context";
+import { IIntermediate } from "../compiler";
 /**
  * Define Object ST
  * <Define Object> ::= <Identifier> | <Define Array>
  */
 @SyntaxTreeType
 export default class DefineObject implements ISyntaxTree {
+    gen(list: IIntermediate[]): void {
+        throw new Error("Method not implemented.");
+    }
+    check(context: Context): boolean {
+        throw new Error("Method not implemented.");
+    }
     static parse(ts: ITokenIterator): DefineObject {
         let res = new DefineObject();
         if (ts.cur().type === IDENTIFIER) {

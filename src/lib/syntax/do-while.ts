@@ -3,13 +3,21 @@ import {ITokenIterator} from "../token-iterator";
 
 import Statement from "./statement";
 import Expression from "./expression";
+import Context from "../context";
+import { IIntermediate } from "../compiler";
 
 /**
  * <DoWhile> ::= <Keyword do> <Statement> <Keyword while> <Expression>
  */
 @SyntaxTreeType
 export default class DoWhile implements ISyntaxTree {
-    static parse(ts: ITokenIterator): DoWhile {
+	gen(list: IIntermediate[]): void {
+		throw new Error("Method not implemented.");
+	}
+	check(context: Context): void {
+		throw new Error("Method not implemented.");
+	}
+	static parse(ts: ITokenIterator): DoWhile {
 	let res = new DoWhile();
 	if (ts.cur().text === 'do') {
 	    ts.accept();

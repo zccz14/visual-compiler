@@ -1,9 +1,9 @@
-import * as React from "react";
-import Code from "material-ui/svg-icons/action/code";
-import LineStyle from "material-ui/svg-icons/action/line-style";
-import List from "material-ui/svg-icons/action/list";
-import TextFormat from "material-ui/svg-icons/content/text-format";
-import { BottomNavigation, BottomNavigationItem } from "material-ui/BottomNavigation";
+import * as React from 'react';
+import Code from 'material-ui/svg-icons/action/code';
+import LineStyle from 'material-ui/svg-icons/action/line-style';
+import List from 'material-ui/svg-icons/action/list';
+import TextFormat from 'material-ui/svg-icons/content/text-format';
+import { BottomNavigation, BottomNavigationItem } from 'material-ui/BottomNavigation';
 export default class Bottom extends React.Component<{ label: string; onChange: (label: string) => void; }, {}> {
     static items = [
         {
@@ -19,7 +19,7 @@ export default class Bottom extends React.Component<{ label: string; onChange: (
             icon: <LineStyle />
         },
         {
-            label: "intermediate",
+            label: 'intermediate',
             icon: <List />
         }
     ];
