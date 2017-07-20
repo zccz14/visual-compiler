@@ -1,0 +1,18 @@
+language: node_js
+node_js:
+  - "6"
+cache:
+  directories:
+  - node_modules
+before_install:
+    - git config --global user.email $GITHUB_EMAIL
+    - git config --global user.name $GITHUB_USERNAME
+script:
+  - npm test
+  - npm run build
+after_success:
+  - cd build
+  - git init
+  - git add .
+  - git commit -m "Travis Deploy"
+  - git push -f -q $GITHUB_URI master:gh-pages
