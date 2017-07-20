@@ -309,8 +309,41 @@ export class Expression1 extends AExpression {
  */
 @SyntaxTreeType
 export class Expression2 extends AExpression {
-    check(context: Context): boolean {
-        throw new Error("Method not implemented.");
+    gen(list: Quad[]): void {
+        this.operand.gen(list);
+        if (this.operator === 'logical-negation') {
+            if (this.operand['TC'] === undefined) { // FC === undefined
+                this.operand['TC'] = list.length + 1;
+                list.push(new Quad('jnz', this.operand.label, '', 0));
+                this.operand['FC'] = list.length + 1;
+                list.push(new Quad('j', '', '', 0));
+            }
+            this['TC'] = this.operand['FC'];
+            this['FC'] = this.operand['TC'];
+        } else if (this.operator === 'pre-increment') {
+            this.name = `T${list.length}`;
+            list.push(new Quad('inc', '', '', this.operand.label)); // TODO
+        } else if (this.operator === 'pre-decrement') {
+            this.name = `T${list.length}`;
+            list.push(new Quad('pre', '', '', this.operand.label)); // TODO
+        } else if (this.operator === 'unary-plus') {
+            this.name = this.operand.label;
+        } else if (this.operator === 'unary-minus') {
+            this.name = `T${list.length}`;
+            list.push(new Quad('neg', this.operand.label, '', this.label));
+        }
+    }
+    check(context: Context): void {
+        this.operand.check(context);
+        if (this.operator === 'pre-increment') {
+            if (!this.lvalue) {
+                throw new CESemantic('pre-inc a non-left value', this);
+            }
+        } else if (this.operator === 'pre-decrement') {
+            if (!this.lvalue) {
+                throw new CESemantic('pre-dec a non-left value', this);
+            }
+        }
     }
     static parse(ts: ITokenIterator): AExpression {
         let res = new Expression2();
