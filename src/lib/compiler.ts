@@ -1,3 +1,4 @@
+import { backpatch } from './quad';
 import Token, * as TokenType from "./token";
 import { ISyntaxTree, SyntaxTree } from "./syntax-tree";
 import Lexer from "./lex";
@@ -69,8 +70,8 @@ export class Compiler {
             res.tokens.push(ti.cur());
             ti.accept();
         }
-        // Syntax
         ti.reset();
+        // Syntax
         let st: ISyntaxTree;
         while (!ti.isEnded()) {
             let startAt = ti.cur();
@@ -103,6 +104,7 @@ export class Compiler {
         res.trees.forEach((tree, idx) => {
             try {
                 tree.gen(res.code);
+                backpatch(<Quad[]>res.code, tree['CHAIN'], res.code.length + 1);
             } catch (e) {
                 res.errors.push(e);
             }

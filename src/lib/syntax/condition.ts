@@ -4,7 +4,8 @@ import { ITokenIterator } from "../token-iterator";
 import Statement from "./statement";
 import Expression from "./expression";
 import Context from "../context";
-import { IIntermediate } from "../compiler";
+import { CESyntax, IIntermediate } from '../compiler';
+import Quad, { backpatch, merge } from '../quad';
 
 /**
  * <Condition> ::= <Keyword if> <Expression> <Keyword then> <Statement> |
@@ -12,10 +13,15 @@ import { IIntermediate } from "../compiler";
  */
 @SyntaxTreeType
 export default class Condition implements ISyntaxTree {
-	gen(list: IIntermediate[]): void {
+	gen(list: Quad[]): void {
 		this.condition.gen(list);
+		backpatch(list, this.condition['TC'], list.length + 1);
 		this.statementT.gen(list);
+		this['CHAIN'] = merge(list, this.condition['FC'], this.statementT['CHAIN']);
 		if (this.statementF) {
+			list.push(new Quad('j', '_', '_', 0)); // avoid drop
+			this['CHAIN'] = merge(list, this.condition['CHAIN'], list.length);
+			backpatch(list, this.condition['FC'], list.length + 1);
 			this.statementF.gen(list);
 		}
 	}
@@ -39,10 +45,10 @@ export default class Condition implements ISyntaxTree {
 					res.statementF = Statement.parse(ts);
 				}
 			} else {
-				throw new Error('SyntaxError: Expect then');
+				throw new CESyntax('miss "then"', ts.cur());
 			}
 		} else {
-			throw new Error('SyntaxError: Expect if');
+			throw new CESyntax('miss "if"', ts.cur());
 		}
 		return res;
 	}

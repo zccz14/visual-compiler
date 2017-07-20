@@ -9,6 +9,9 @@ export default class Quad implements IIntermediate {
         this.src2 = src2;
         this.dest = dest;
     }
+    toString(): string {
+        return `<${this.op}, ${this.src1 || '_'}, ${this.src2 || '_'}, ${this.dest || '_'}>`;
+    }
     op: string;
     src1: string;
     src2: string;
@@ -21,7 +24,6 @@ export function merge(list: Quad[], head1: number, head2: number): number {
     }
     let p = head2;
     while (true) {
-        console.log('merge', p);
         if (list[p - 1].dest) {
             p = <number>list[p - 1].dest;
         } else {
@@ -34,7 +36,6 @@ export function merge(list: Quad[], head1: number, head2: number): number {
 
 export function backpatch(list: Quad[], head: number, value: number): void {
     while (head) {
-        console.log(head);
         let t = head; 
         head = <number>list[head - 1].dest;
         list[t - 1].dest = value;

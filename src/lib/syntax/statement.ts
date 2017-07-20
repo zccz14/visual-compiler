@@ -11,7 +11,7 @@ import { IDENTIFIER, LITERAL } from "../token";
 import Context from "../context";
 import { IIntermediate } from "../compiler";
 import Condition from "./condition";
-import Quad, { merge } from "../quad";
+import Quad, { merge, backpatch } from "../quad";
 
 /**
  * <Statement> ::= <Expression> | <WhileDo> | <DoWhile> | <Definition> | <Switch>
@@ -65,7 +65,7 @@ export default class Statement implements ISyntaxTree {
         return res;
     }
     statement: ISyntaxTree;
-    type: string = 'Statement';
+    _type: string = 'Statement';
 }
 
 /**
@@ -75,9 +75,13 @@ export default class Statement implements ISyntaxTree {
 export class StatementList implements ISyntaxTree {
     gen(list: Quad[]): void {
         this['CHAIN'] = 0;
-        this.list.forEach(v => {
+        this.list.forEach((v, i) => {
             v.gen(list);
-            merge(list, this['CHAIN'], v['CHAIN']);
+            if (i + 1 < this.list.length) {
+                backpatch(list, v['CHAIN'], list.length + 1);
+            } else {
+                this['CHAIN'] = merge(list, this['CHAIN'], v['CHAIN']);
+            }
         });
     }
     check(context: Context): void {

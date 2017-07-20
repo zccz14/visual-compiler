@@ -2,7 +2,7 @@
  * Trie Tree
  */
 class TrieNode {
-
+  
 }
 
 class Trie {

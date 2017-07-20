@@ -4,7 +4,7 @@ import { IDENTIFIER, LITERAL, DELIMITER } from "../token";
 import { CESyntax, CESemantic, IIntermediate } from "../compiler";
 import Context from "../context";
 import { BaseTypeSet } from "./base-type";
-import Quad from "../quad";
+import Quad, { backpatch, merge } from "../quad";
 
 abstract class AExpression implements ISyntaxTree {
     gen(list: IIntermediate[]): void {
@@ -50,6 +50,8 @@ abstract class AExpression implements ISyntaxTree {
 export default class Expression extends AExpression {
     gen(list: IIntermediate[]): void {
         this.expr.gen(list);
+        this['TC'] = this.expr['TC'];
+        this['FC'] = this.expr['FC'];
     }
     check(context: Context): void {
         this.expr.check(context);
@@ -293,8 +295,27 @@ export class Expression2 extends AExpression {
  */
 @SyntaxTreeType
 export class Expression3 extends AExpression {
-    check(context: Context): boolean {
-        throw new Error("Method not implemented.");
+    gen(list: Quad[]): void {
+        if (!this.operand1.constant) {
+            this.operand1.gen(list);
+        }
+        if (!this.operand2.constant) {
+            this.operand2.gen(list);
+        }
+        if (!this.constant) {
+            this.name = `T${list.length}`;
+            list.push(new Quad(this.operator, this.operand1.label, this.operand2.label, this.label));
+        }
+    }
+    check(context: Context): void {
+        this.operand1.check(context);
+        this.operand2.check(context);
+        this.type = this.AlgebraCast(this.operand1.type, this.operand2.type);
+        this.lvalue = false;
+        this.constant = this.operand1.constant && this.operand2.constant;
+        if (this.constant) {
+            this.value = this.operand1.value * this.operand2.value;
+        }
     }
     static parse(ts: ITokenIterator): AExpression {
         let res = new Expression3();
@@ -496,8 +517,16 @@ export class Expression6 extends AExpression {
 @SyntaxTreeType
 export class Expression7 extends AExpression {
     type: string;
-    check(context: Context): boolean {
-        throw new Error("Method not implemented.");
+    gen(list: Quad[]): void {
+        this.operand1.gen(list);
+        backpatch(list, this.operand1['FC'], list.length + 1);
+        this.operand2.gen(list);
+        this['TC'] = merge(list, this.operand1['TC'], this.operand2['TC']);
+        this['FC'] = this.operand2['FC'];
+    }
+    check(context: Context): void {
+        this.operand1.check(context);
+        this.operand2.check(context);
     }
     static parse(ts: ITokenIterator): AExpression {
         let res = new Expression7();
@@ -532,8 +561,16 @@ export class Expression7 extends AExpression {
 @SyntaxTreeType
 export class Expression8 extends AExpression {
     type: string;
-    check(context: Context): boolean {
-        throw new Error("Method not implemented.");
+    gen(list: Quad[]): void {
+        this.operand1.gen(list);
+        backpatch(list, this.operand1['TC'], list.length + 1);
+        this.operand2.gen(list);
+        this['FC'] = merge(list, this.operand1['FC'], this.operand2['FC']);
+        this['TC'] = this.operand2['TC'];
+    }
+    check(context: Context): void {
+        this.operand1.check(context);
+        this.operand2.check(context);
     }
     static parse(ts: ITokenIterator): AExpression {
         let res = new Expression8();

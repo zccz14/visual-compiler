@@ -11,7 +11,8 @@ const KeywordSet = new Set([
   "if", "then", "else",
   "case", "of", "otherwise", "end",
   "while", "do",
-  "call", "return"
+  "call", "return",
+  "const"
 ]);
 
 const SpaceSet = new Set([
@@ -25,7 +26,7 @@ const DelimiterSet = new Set([
 const OperatorSet = new Set([
   ":=", "+", "-", "×", "<", "≤", "=", "≠", ">", "≥", "∧", "∨", "┐", "++", "--"
 ]);
-
+const keywordTrie = {};
 const symbolTrie = {};
 
 const makeTrie = (container: any) => (type: string) => (str: string) => {
@@ -42,6 +43,7 @@ const makeTrie = (container: any) => (type: string) => (str: string) => {
 let func = makeTrie(symbolTrie);
 DelimiterSet.forEach(func(TokenType.DELIMITER));
 OperatorSet.forEach(func(TokenType.OPERATOR));
+KeywordSet.forEach(makeTrie(keywordTrie)(TokenType.KEYWORD));
 
 export default class Lexer {
   public static lex(text: string): ITokenIterator {
