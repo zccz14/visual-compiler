@@ -13,7 +13,7 @@ export default class DefineObject implements ISyntaxTree {
     gen(list: IIntermediate[]): void {
         throw new Error("Method not implemented.");
     }
-    check(context: Context): boolean {
+    check(context: Context): void {
         throw new Error("Method not implemented.");
     }
     static parse(ts: ITokenIterator): DefineObject {

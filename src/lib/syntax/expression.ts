@@ -88,28 +88,16 @@ export class Expression0 extends AExpression {
     check(context: Context): void {
         if (this.id) {
             // identifier: check if defined
-            let ctx = context;
-            let isFound = false;
-            while (true) {
-                let symbol = ctx.content.get(this.id);
-                if (symbol) {
-                    isFound = true;
-                    this.type = symbol.type;
-                    this.lvalue = true;
-                    this.constant = !!symbol.const;
-                    // if (this.constant) { // TODO: const int
-                    //     this.value = symbol.value;
-                    // }
-                    break;
-                }
-                if (ctx.parent) {
-                    ctx = ctx.parent;
-                } else {
-                    break;
-                }
-            }
-            if (!isFound) {
+            console.log(context, this.id);
+            let symbol = context.find(this.id);
+            if (!symbol) {
                 throw new CESemantic(`${this.id} is not defined in this scope`, this);
+            }
+            Object.assign(this, symbol);
+            this.lvalue = true;
+            this.constant = !!symbol.const;
+            if (symbol.array && symbol.arraySizes) {
+                this['PTR'] = 0;
             }
         } else if (this.expr) {
             // (Expr)
@@ -167,8 +155,79 @@ export class Expression0 extends AExpression {
  */
 @SyntaxTreeType
 export class Expression1 extends AExpression {
-    check(context: Context): boolean {
-        throw new Error("Method not implemented.");
+    gen(list: Quad[]): void {
+        if (this.operator === 'function-call') {
+            this.operand.gen(list);
+            list.push(new Quad('push', '', '', 'bp'));
+            list.push(new Quad('push', '', '', 'sp'));
+            for (let i = this.funcArgs.length - 1; i >= 0; i--) {
+                let v = this.funcArgs[i];
+                v.gen(list);
+                list.push(new Quad('push', '', '', v.expr.label));
+            }
+            list.push(new Quad('j', '', '', this.operand.label));
+        } else if (this.operator === 'array-access') {
+            this.operand.gen(list);
+            this.arrayArg.gen(list);
+            if (this['PTR'] < this['arraySizes'].length) {
+                let tName = `T${list.length}`;
+                if (this.operand.label !== this.operand['id']) {
+                    list.push(new Quad('add', this.operand.label, this.arrayArg.expr.label, tName));
+                } else {
+                    tName = this.arrayArg.expr.label;
+                }
+                this.name = `T${list.length}`;
+                list.push(new Quad('mul', tName, this['arraySizes'][this['PTR']], this.label));
+            } else {
+                let tName = `T${list.length}`;
+                if (this.operand.label !== this.operand['id']) {
+                    list.push(new Quad('add', this.operand.label, this.arrayArg.expr.label, tName));
+                } else {
+                    tName = this.arrayArg.expr.label;
+                }
+                let name2 = `T${list.length}`;
+                list.push(new Quad('add', tName, this['id'], name2));
+                this.name = name2;
+                this.lvalue = true;
+            }
+        } else if (this.operator === 'post-increment') {
+            this.operand.gen(list);
+            this.name = `T${list.length}`;
+            list.push(new Quad('inc', '', '', this.operand.label));
+        } else if (this.operator === 'post-decrement') {
+            this.operand.gen(list);
+            this.name = `T${list.length}`;
+            list.push(new Quad('dec', '', '', this.operand.label));
+        }
+    }
+    check(context: Context): void {
+        this.operand.check(context);
+        if (this.operator === 'function-call') {
+            // TODO: check identifier and type
+            this.name = this.operand.label;
+            this.funcArgs.forEach(v => v.check(context));
+        } else if (this.operator === 'array-access') {
+            this['id'] = this.operand['id'];
+            this['arraySizes'] = this.operand['arraySizes'];
+            this['PTR'] = this.operand['PTR'] + 1;
+            this.arrayArg.check(context);
+            // TODO: check identifier and type
+            let item = context.find(this.operand.label);
+            if (!item) {
+                throw new CESemantic(`${this.operand.label} is not defined`, this);
+            }
+            if (!item.array) {
+                throw new CESemantic(`${this.operand.label} is not an array`, this);
+            }
+        } else if (this.operator === 'post-increment') {
+            if (!this.operand.lvalue) {
+                throw new CESemantic('post-increment: not a left value', this);
+            }
+        } else if (this.operator === 'post-decrement') {
+            if (!this.operand.lvalue) {
+                throw new CESemantic('post-decrement: not a left value', this);
+            }
+        }
     }
     static parse(ts: ITokenIterator): AExpression {
         let res = new Expression1();
@@ -236,7 +295,7 @@ export class Expression1 extends AExpression {
     operand: AExpression;
     arrayArg: Expression;
     funcArgs: Expression[];
-    type: string = 'Expression1';
+    _type: string = 'Expression1';
 }
 
 /**
@@ -641,7 +700,13 @@ export class Expression9 extends AExpression {
         if (!this.operand1.constant) {
             this.operand1.gen(list);
         }
-        list.push(new Quad(':=', this.operand2.label, '', this.operand1.label));
+        let op = ':=';
+        if (this.operand1['operator'] === 'array-access') {
+            op = '[]=';
+        } else if (this.operand2['operator'] === 'array-access') {
+            op = '=[]';
+        }
+        list.push(new Quad(op, this.operand2.label, '', this.operand1.label));
     }
     check(context: Context): boolean {
         this.operand1.check(context);

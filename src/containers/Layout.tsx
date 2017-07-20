@@ -16,6 +16,7 @@ class Layout extends React.Component<{ dispatch: Dispatch<any>; stage: string; c
     render() {
         const { dispatch, stage, core } = this.props;
         const { text } = core;
+        console.log(core['context']);
         return (
             <div>
                 <AppBar

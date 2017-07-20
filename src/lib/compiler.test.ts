@@ -79,3 +79,10 @@ it('sample-4', () => {
     printCode(res.code);
     console.log(res.errors);
 });
+
+it('sample-5: multi-demension array access', () => {
+    let text = 'int a[20][30]; a[5][6];';
+    let res = Compiler.compile(text);
+    printCode(res.code);
+    console.log(res.errors);
+});
