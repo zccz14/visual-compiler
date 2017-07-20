@@ -86,3 +86,18 @@ it('sample-5: multi-demension array access', () => {
     printCode(res.code);
     console.log(res.errors);
 });
+
+
+it('sample-6: case', () => {
+    let text = 
+`int a, b;
+case a of
+	1: a:=1
+   2: b:=3
+   3: a:=5
+   otherwise: b:= 7
+end`;
+    let res = Compiler.compile(text);
+    printCode(res.code);
+    console.log(res.errors);
+});
