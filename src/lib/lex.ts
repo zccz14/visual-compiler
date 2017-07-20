@@ -49,9 +49,14 @@ export default class Lexer {
   public static lex(text: string): ITokenIterator {
     const res: TokenIterator = new TokenIterator();
     let bp: number = 0, cp: number = 0; // text[bp, cp)
+    let rc: number = 1, cbp: number = 0; // row and column
     while (bp < text.length) {
       let type = '';
       let ch = text[cp++];
+      if (ch === '\n') {
+        rc++;
+        cbp = bp;
+      }
       if (isAlphaOrUnderline(ch)) {
         // Keyword | Identifier
         while (isElementOfWord(text[cp])) cp++;
@@ -89,7 +94,7 @@ export default class Lexer {
         }
       }
       // gen & append token
-      res.append(new Token(type, text.slice(bp, cp), bp, cp));
+      res.append(new Token(type, text.slice(bp, cp), bp, cp, rc, bp - cbp));
       bp = cp; // update base ptr
     }
     return res;

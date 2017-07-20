@@ -19,6 +19,9 @@ export class CELex implements ICompilerError {
     }
     token: Token;
     msg: string;
+    toString() {
+        return `Lex Error: ${this.msg} (${this.token})`;
+    }
 }
 
 export class CESyntax implements ICompilerError {
@@ -28,6 +31,9 @@ export class CESyntax implements ICompilerError {
     }
     token: Token;
     msg: string;
+    toString() {
+        return `Syntax Error: ${this.msg} (${this.token})`;
+    }
 }
 
 export class CESemantic implements ICompilerError {
@@ -37,6 +43,9 @@ export class CESemantic implements ICompilerError {
     }
     msg: string;
     tree: ISyntaxTree;
+    toString() {
+        return `Semantic Error: ${this.msg} (${this.tree})`;
+    }
 }
 
 export class CompileResult {

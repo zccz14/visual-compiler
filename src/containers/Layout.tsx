@@ -10,8 +10,9 @@ import { Dispatch } from "redux";
 import Code from "./Code";
 import Lex from "./Lex";
 import Syntax from "./Syntax";
+import { ICompilerError } from "../lib/compiler";
 
-class Layout extends React.Component<{ dispatch: Dispatch<any>; stage: string; core: { text: string; }; }, {}> {
+class Layout extends React.Component<{ dispatch: Dispatch<any>; stage: string; core: { text: string; errors: ICompilerError[] }; }, {}> {
     render() {
         const { dispatch, stage, core } = this.props;
         const { text } = core;
@@ -32,16 +33,19 @@ class Layout extends React.Component<{ dispatch: Dispatch<any>; stage: string; c
                         padding: '64px 15px'
                     }}
                 >
-                    <div className={stage === 'code'? 'active': 'hide'}>
+                    <div>
+                        {core.errors ? core.errors.map((v, i) => <p key={i}>{v.toString()}</p>) : null}
+                    </div>
+                    <div className={stage === 'code' ? 'active' : 'hide'}>
                         <Code />
                     </div>
-                    <div className={stage === 'lex'? 'active': 'hide'}>
+                    <div className={stage === 'lex' ? 'active' : 'hide'}>
                         <Lex />
                     </div>
-                    <div className={stage === 'syntax'? 'active': 'hide'}>
+                    <div className={stage === 'syntax' ? 'active' : 'hide'}>
                         <Syntax />
                     </div>
-                    <div className={stage === 'intermediate'? 'active': 'hide'}>
+                    <div className={stage === 'intermediate' ? 'active' : 'hide'}>
                         <Intermediate />
                     </div>
                 </div>

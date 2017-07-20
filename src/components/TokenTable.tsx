@@ -11,8 +11,8 @@ export default class TokenTable extends React.Component<{ tokens: Token[] }, {}>
                         <TableHeaderColumn>#</TableHeaderColumn>
                         <TableHeaderColumn>Type</TableHeaderColumn>
                         <TableHeaderColumn>Text</TableHeaderColumn>
-                        <TableHeaderColumn>Start Ptr</TableHeaderColumn>
-                        <TableHeaderColumn>End Ptr</TableHeaderColumn>
+                        <TableHeaderColumn>Start, End</TableHeaderColumn>
+                        <TableHeaderColumn>Line, Column</TableHeaderColumn>
                     </TableRow>
                 </TableHeader>
                 <TableBody displayRowCheckbox={false}>
@@ -22,8 +22,8 @@ export default class TokenTable extends React.Component<{ tokens: Token[] }, {}>
                                 <TableRowColumn>{i + 1}</TableRowColumn>
                                 <TableRowColumn className={v.type}>{v.type}</TableRowColumn>
                                 <TableRowColumn>{v.text}</TableRowColumn>
-                                <TableRowColumn>{v.bp}</TableRowColumn>
-                                <TableRowColumn>{v.cp}</TableRowColumn>
+                                <TableRowColumn>{`[${v.bp}, ${v.cp})`}</TableRowColumn>
+                                <TableRowColumn>{`(${v.rc}, ${v.cc})`}</TableRowColumn>
                             </TableRow>)
                         )
                     }
