@@ -24,6 +24,12 @@ export default class WhileDo implements ISyntaxTree {
 			}
 		} else {
 			this.condition.gen(list);
+			if (this.condition.expr['TC'] === undefined) { // FC === undefined
+				this.condition.expr['TC'] = list.length + 1;
+				list.push(new Quad('jnz', this.condition.expr.label, '', 0));
+				this.condition.expr['FC'] = list.length + 1;
+				list.push(new Quad('j', '', '', 0));
+			}
 			backpatch(list, this.condition.expr['TC'], list.length + 1);
 			this.statement.gen(list);
 			this['CHAIN'] = merge(list, this.condition.expr['FC'], this.statement['CHAIN'] || 0);

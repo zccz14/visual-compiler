@@ -476,9 +476,15 @@ export class Expression5 extends AExpression {
  */
 @SyntaxTreeType
 export class Expression6 extends AExpression {
-    type: string;
-    check(context: Context): boolean {
-        throw new Error("Method not implemented.");
+    gen(list: IIntermediate[]): void {
+        this['TC'] = list.length + 1;
+        list.push(new Quad(`j_${this.operator}`, this.operand1.label, this.operand2.label, 0));
+        this['FC'] = list.length + 1;
+        list.push(new Quad(`j`, '', '', 0));
+    }
+    check(context: Context): void {
+        this.operand1.check(context);
+        this.operand2.check(context);
     }
     static parse(ts: ITokenIterator): AExpression {
         let res = new Expression6();
@@ -519,8 +525,20 @@ export class Expression7 extends AExpression {
     type: string;
     gen(list: Quad[]): void {
         this.operand1.gen(list);
+        if (this.operand1['TC'] === undefined) { // FC === undefined
+            this.operand1['TC'] = list.length + 1;
+            list.push(new Quad('jnz', this.operand1.label, '', 0));
+            this.operand1['FC'] = list.length + 1;
+            list.push(new Quad('j', '', '', 0));
+        }
         backpatch(list, this.operand1['FC'], list.length + 1);
         this.operand2.gen(list);
+        if (this.operand2['TC'] === undefined) { // FC === undefined
+            this.operand2['TC'] = list.length + 1;
+            list.push(new Quad('jnz', this.operand2.label, '', 0));
+            this.operand2['FC'] = list.length + 1;
+            list.push(new Quad('j', '', '', 0));
+        }
         this['TC'] = merge(list, this.operand1['TC'], this.operand2['TC']);
         this['FC'] = this.operand2['FC'];
     }
@@ -563,8 +581,20 @@ export class Expression8 extends AExpression {
     type: string;
     gen(list: Quad[]): void {
         this.operand1.gen(list);
+        if (this.operand1['TC'] === undefined) { // FC === undefined
+            this.operand1['TC'] = list.length + 1;
+            list.push(new Quad('jnz', this.operand1.label, '', 0));
+            this.operand1['FC'] = list.length + 1;
+            list.push(new Quad('j', '', '', 0));
+        }
         backpatch(list, this.operand1['TC'], list.length + 1);
         this.operand2.gen(list);
+        if (this.operand2['TC'] === undefined) { // FC === undefined
+            this.operand2['TC'] = list.length + 1;
+            list.push(new Quad('jnz', this.operand2.label, '', 0));
+            this.operand2['FC'] = list.length + 1;
+            list.push(new Quad('j', '', '', 0));
+        }
         this['FC'] = merge(list, this.operand1['FC'], this.operand2['FC']);
         this['TC'] = this.operand2['TC'];
     }
