@@ -9,8 +9,8 @@ before_install:
     - git config --global user.name $GITHUB_USERNAME
 script:
   - npm test
-  - npm run build
 after_success:
+  - npm run build
   - cd build
   - git init
   - git add .
