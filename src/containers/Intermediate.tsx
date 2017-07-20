@@ -6,10 +6,11 @@ import { Dispatch } from "redux";
 
 class QuadIntermediate extends React.Component<{ dispatch: Dispatch<any>; code: Quad[] }, {}> {
     render() {
+        let { code = [] } = this.props;
         return (
             <div>
                 <QuadTable
-                    data={this.props.code}
+                    data={code}
                 />
             </div>
         )

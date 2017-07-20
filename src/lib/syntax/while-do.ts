@@ -14,10 +14,20 @@ import Quad, { backpatch, merge } from "../quad";
 export default class WhileDo implements ISyntaxTree {
 	gen(list: Quad[]): void {
 		this['QUAD'] = list.length + 1;
-		this.condition.gen(list);
-		backpatch(list, this.condition.expr['TC'], list.length + 1);
-		this.statement.gen(list);
-		this['CHAIN'] = merge(list, this.condition.expr['FC'], this.statement['CHAIN'] || 0);
+		if (this.condition.constant) {
+			if (this.condition.value) {
+				this.statement.gen(list);
+				this['CHAIN'] = this.statement['CHAIN'];
+			} else {
+				// while false: do not generate statement
+				return;
+			}
+		} else {
+			this.condition.gen(list);
+			backpatch(list, this.condition.expr['TC'], list.length + 1);
+			this.statement.gen(list);
+			this['CHAIN'] = merge(list, this.condition.expr['FC'], this.statement['CHAIN'] || 0);
+		}
 		list.push(new Quad('j', '', '', this['QUAD']));
 	}
 	check(context: Context): void {

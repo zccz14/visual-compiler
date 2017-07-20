@@ -2,7 +2,24 @@ import Compiler from '../lib';
 import { combineReducers, Action } from "redux";
 import Lexer from "../lib/lex";
 import { StatementList } from "../lib/syntax/statement";
-const defaultText = 'int a, b;\na := 1;\nb := 0;\nwhile a < 10 do {\n\tb := b + a\n}\n';
+import { CompileResult } from "../lib/compiler";
+const defaultText = 
+`int a, b;
+while a < 20 ∧ b > 8 do {
+    if a > 10 ∨ b < 16 then {
+        if a < 15 then {
+            a := 19;
+            b := 15
+        } else {
+            a := 11;
+            b := 9
+        }
+    } else {
+        a := 1;
+        b := 17
+    };
+};
+`;
 
 function CoreReducer(state = { text: defaultText }, action: { type: string; payload: any }) {
     switch (action.type) {

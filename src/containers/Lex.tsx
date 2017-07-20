@@ -6,7 +6,7 @@ import { Dispatch } from "redux";
 
 class Lex extends React.Component<{ dispatch: Dispatch<any>; tokens: Token[] }, {}> {
     render() {
-        const { tokens } = this.props;
+        const { tokens = [] } = this.props;
         let noSpace = tokens.filter(v => v.type !== 'space');
         return (
             <div>

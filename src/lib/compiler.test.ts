@@ -66,8 +66,15 @@ it('sample-3', () => {
     console.log(res.errors);
 })
 
-it('sample-4', () => {
+it('const expr', () => {
     let text = 'int a, b;\nb:=2; a := 1+2+b×3-4+(b + 3) ×4+b +b';
+    let res = Compiler.compile(text);
+    printCode(res.code);
+    console.log(res.errors);
+});
+
+it('sample-4', () => {
+    let text = 'do {} while 1';
     let res = Compiler.compile(text);
     printCode(res.code);
     console.log(res.errors);

@@ -25,22 +25,30 @@ class Layout extends React.Component<{ dispatch: Dispatch<any>; stage: string; c
                         position: 'fixed',
                         top: 0
                     }}
-                    />
+                />
                 <div
                     style={{
                         position: 'relative',
                         padding: '64px 15px'
                     }}
-                    >
-                    {stage === 'code' ? <Code /> : null}
-                    {stage === 'lex' ? <Lex /> : null}
-                    {stage === 'syntax' ? <Syntax /> : null}
-                    {stage === 'intermediate' ? <Intermediate /> : null}
+                >
+                    <div className={stage === 'code'? 'active': 'hide'}>
+                        <Code />
+                    </div>
+                    <div className={stage === 'lex'? 'active': 'hide'}>
+                        <Lex />
+                    </div>
+                    <div className={stage === 'syntax'? 'active': 'hide'}>
+                        <Syntax />
+                    </div>
+                    <div className={stage === 'intermediate'? 'active': 'hide'}>
+                        <Intermediate />
+                    </div>
                 </div>
                 <Bottom
                     label={stage}
                     onChange={(label: string) => dispatch({ type: 'STAGE_CHANGE', payload: { next: label, prev: stage } })}
-                    />
+                />
             </div>
         );
     }
