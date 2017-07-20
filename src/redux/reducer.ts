@@ -21,12 +21,12 @@ while a < 20 ∧ b > 8 do {
 };
 `;
 
-function CoreReducer(state = { text: defaultText }, action: { type: string; payload: any }) {
+function CoreReducer(state = { text: defaultText, update: true }, action: { type: string; payload: any }) {
     switch (action.type) {
         case 'EDIT':
-            return Object.assign({}, state, { text: action.payload });
+            return Object.assign({}, state, { text: action.payload, update: true});
         case 'COMPILE':
-            return Object.assign({}, state, Compiler.compile(action.payload));
+            return Object.assign({}, state, Compiler.compile(action.payload), {update: false});
         default:
             return state;
     }
