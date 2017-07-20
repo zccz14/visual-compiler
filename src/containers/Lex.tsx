@@ -19,7 +19,7 @@ class Lex extends React.Component<{ dispatch: Dispatch<any>; tokens: Token[] }, 
 }
 function select(state: any) {
     return {
-        tokens: state.core.tokenIterator.tokens
+        tokens: state.core.tokens
     }
 }
 export default connect(select)(Lex);

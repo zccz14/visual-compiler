@@ -59,8 +59,9 @@ export class Compiler {
     /**
      * @exception no throw
      */
-    static async compile(text: string): Promise<CompileResult> {
+    static compile(text: string): CompileResult {
         let res = new CompileResult();
+        text = text || "";
         // Lex
         let ti = Lexer.lex(text);
         while (!ti.isEnded()) {

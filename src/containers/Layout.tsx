@@ -1,4 +1,5 @@
-import * as React from "react";
+import Intermediate from './Intermediate';
+import * as React from 'react';
 import AppBar from "material-ui/AppBar";
 import IconButton from "material-ui/IconButton";
 import Translate from "material-ui/svg-icons/action/translate";
@@ -24,21 +25,22 @@ class Layout extends React.Component<{ dispatch: Dispatch<any>; stage: string; c
                         position: 'fixed',
                         top: 0
                     }}
-                />
+                    />
                 <div
                     style={{
                         position: 'relative',
                         padding: '64px 15px'
                     }}
-                >
-                    {stage === 'code'? <Code />: null}
-                    {stage === 'lex'? <Lex />: null}
-                    {stage === 'syntax'? <Syntax />: null}
+                    >
+                    {stage === 'code' ? <Code /> : null}
+                    {stage === 'lex' ? <Lex /> : null}
+                    {stage === 'syntax' ? <Syntax /> : null}
+                    {stage === 'intermediate' ? <Intermediate /> : null}
                 </div>
                 <Bottom
                     label={stage}
-                    onChange={(label) => dispatch({ type: 'STAGE_CHANGE', payload: label })}
-                />
+                    onChange={(label: string) => dispatch({ type: 'STAGE_CHANGE', payload: { next: label, prev: stage } })}
+                    />
             </div>
         );
     }

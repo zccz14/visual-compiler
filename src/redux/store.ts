@@ -1,5 +1,6 @@
-import { compose, createStore } from "redux";
+import { compose, createStore, applyMiddleware } from "redux";
 import reducer from "./reducer";
+import { AutoCompile } from "./middleware";
 declare global {
     interface Window {
         devToolsExtension: Function
@@ -8,5 +9,5 @@ declare global {
 const enhancer = compose(
     (window.devToolsExtension ? window.devToolsExtension() : (f: any) => f)
 );
-const store = createStore(reducer, enhancer);
+const store = applyMiddleware(AutoCompile)(createStore)(reducer, enhancer);
 export default store;

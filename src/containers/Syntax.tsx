@@ -37,6 +37,6 @@ class Syntax extends React.Component<{ dispatch: Dispatch<any>, data: {} }, {}> 
     }
 }
 
-const select = (state: any) => ({ data: state.core.syntaxTree });
+const select = (state: any) => ({ data: state.core.trees });
 
 export default connect(select)(Syntax);
