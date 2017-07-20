@@ -1,6 +1,7 @@
 {
   "name": "visual-compiler",
   "version": "0.1.0",
+  "homepage": ".",
   "private": true,
   "dependencies": {
     "@types/codemirror": "0.0.41",
