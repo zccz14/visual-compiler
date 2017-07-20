@@ -89,14 +89,38 @@ it('sample-5: multi-demension array access', () => {
 
 
 it('sample-6: case', () => {
-    let text = 
-`int a, b;
+    let text =
+        `int a, b;
 case a of
 	1: a:=1
    2: b:=3
    3: a:=5
    otherwise: b:= 7
 end`;
+    let res = Compiler.compile(text);
+    printCode(res.code);
+    console.log(res.errors);
+});
+
+it('sample-6: case', () => {
+    let text =
+`int a, b, c[20][50];
+while a < 20 ∧ b > 8 do {
+    if a > 10 ∨ b < 16 then {
+        if a < 15 then {
+            a := 19;
+            b := 15
+        } else {
+            a := 11;
+            b := 9
+        }
+    } else {
+        a := 1;
+        b := 17;
+			c[a][b + 1] := b - a
+    };
+};
+`;
     let res = Compiler.compile(text);
     printCode(res.code);
     console.log(res.errors);

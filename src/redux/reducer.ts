@@ -25,8 +25,10 @@ function CoreReducer(state = { text: defaultText, update: true }, action: { type
     switch (action.type) {
         case 'EDIT':
             return Object.assign({}, state, { text: action.payload, update: true});
-        case 'COMPILE':
-            return Object.assign({}, state, Compiler.compile(action.payload), {update: false});
+        case 'COMPILE':{
+            let res = Compiler.compile(action.payload);
+            return Object.assign({}, state, res, {context: Array.from(res.context.content.entries())}, {update: false});
+        }
         default:
             return state;
     }

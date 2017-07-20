@@ -11,12 +11,13 @@ import Code from "./Code";
 import Lex from "./Lex";
 import Syntax from "./Syntax";
 import { ICompilerError } from "../lib/compiler";
+import Context from "../lib/context";
+import SymbolTable from "./SymbolTable";
 
-class Layout extends React.Component<{ dispatch: Dispatch<any>; stage: string; core: { text: string; errors: ICompilerError[] }; }, {}> {
+class Layout extends React.Component<{ dispatch: Dispatch<any>; stage: string; core: { text: string; errors: ICompilerError[]; context: Context }; }, {}> {
     render() {
         const { dispatch, stage, core } = this.props;
         const { text } = core;
-        console.log(core['context']);
         return (
             <div>
                 <AppBar
@@ -48,6 +49,9 @@ class Layout extends React.Component<{ dispatch: Dispatch<any>; stage: string; c
                     </div>
                     <div className={stage === 'intermediate' ? 'active' : 'hide'}>
                         <Intermediate />
+                    </div>
+                    <div className={stage === 'symbol' ? 'active' : 'hide'}>
+                        <SymbolTable />
                     </div>
                 </div>
                 <Bottom

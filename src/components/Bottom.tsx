@@ -21,6 +21,10 @@ export default class Bottom extends React.Component<{ label: string; onChange: (
         {
             label: 'intermediate',
             icon: <List />
+        },
+        {
+            label: 'symbol',
+            icon: <List />
         }
     ];
 

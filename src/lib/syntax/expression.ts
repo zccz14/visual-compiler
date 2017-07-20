@@ -207,6 +207,7 @@ export class Expression1 extends AExpression {
             this.name = this.operand.label;
             this.funcArgs.forEach(v => v.check(context));
         } else if (this.operator === 'array-access') {
+            this.lvalue = true;
             this['id'] = this.operand['id'];
             this['arraySizes'] = this.operand['arraySizes'];
             this['PTR'] = this.operand['PTR'] + 1;
